@@ -5,7 +5,7 @@ const PORT = 3000; // default port 8080
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
-  function makgenerateRandomStringeid(length) {
+  function generateRandomStringeid(length) {
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
@@ -15,7 +15,7 @@ app.use(bodyParser.urlencoded({extended: true}));
     return result;
  }
  
- console.log(makeid(5));
+ console.log(generateRandomStringeid(5));
 
 app.set("view engine", "ejs");
 
