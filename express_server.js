@@ -4,7 +4,8 @@ const PORT = 3000; // default port 8080
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-generateRandomStringeid
+
+//function to generate random alphanumeric url 
   function generateRandomStringeid(length) {
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
