@@ -15,22 +15,23 @@ app.use(bodyParser.urlencoded({extended: true}));
     }
     return result;
  }
+ console.log(generateRandomStringeid());
  
- 
- console.log(makeid());
- 
- console.log(generateRandomStringeid(5));
 
 app.set("view engine", "ejs");
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "9sm5xK": "http://www.google.com",
+
 };
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let shortURL = generateRandomStringeid() //assign the function to a new variable
+  urlDatabase[shortURL] = req["body"]["longURL"] // To add a new key to urlDatabase use [] since shortURL is dynamic- longURL is static
+  res.redirect(`/urls/${shortURL}`);         // Respond with 'Ok' (we will replace this)
+  console.log(urlDatabase)
 });
 
 app.get("/", (req, res) => {
@@ -51,6 +52,12 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  let shortURL = req.params.shortURL //returns the generated short url/Lighthouselabs 
+  console.log(urlDatabase[shortURL])
+  res.redirect(urlDatabase[shortURL])
 });
 
 app.get("/urls/:shortURL", (req, res) => {
