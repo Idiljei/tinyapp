@@ -53,15 +53,13 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { username: req.cookies["username"] };
-  res.render("urls_new");
+  res.render("urls_new", templateVars);
 });
 
 app.post("/logout", function (req, res) {
-
-  res.clearCookie("username")
+  res.clearCookie("username");
   res.redirect("/urls");
 });
-
 
 app.post("/login", function (req, res) {
   const username = req.body.username;
