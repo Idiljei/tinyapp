@@ -1,3 +1,8 @@
+// know what you are setting on login and register (expected key value pair)
+// know the diff btwn req.params and req.body 
+// template variable- access to the varaibles on the ejs site 
+
+
 const express = require("express");
 const app = express();
 const PORT = 3000; // default port 8080
@@ -27,6 +32,20 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
+//Assign alphanumeric key to urldatabase
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   let shortURL = generateRandomStringeid(); //assign the function to a new variable
@@ -42,9 +61,6 @@ app.get("/", (req, res) => {
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase); //the info in urlDatabase object in json format
 });
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n"); //html string sent to browser after request made
-});
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase, username: req.cookies["username"] }; //assigned urlDatabase as object in a variable
@@ -56,11 +72,31 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+// register page
+app.get("/register", (req, res) => {
+  const templateVars = { username: req.cookies["username"] };
+  console.log("hello");
+  res.render("urls_register", templateVars);
+});
+
+// register submitter
+app.post("/register", function (req, res) {
+  const id = generateRandomStringeid();
+  const email = req.body.email;
+  const password = req.body.password;
+  users[id] = {id, email, password};
+  res.cookie("user_id", id) 
+  console.log(users)
+  const templateVars = {id, email, password}
+  res.redirect("/urls", templateVars);
+});
+
+//logout submitter
 app.post("/logout", function (req, res) {
   res.clearCookie("username");
   res.redirect("/urls");
 });
-
+//login submitter
 app.post("/login", function (req, res) {
   const username = req.body.username;
 
@@ -100,6 +136,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls"); //redirecting back to the main page after delete button pressed
 });
 
+app.get("*", (req, res) => {
+  res.render("404");
+});
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
