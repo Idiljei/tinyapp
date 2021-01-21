@@ -1,7 +1,6 @@
 // know what you are setting on login and register (expected key value pair)
-// know the diff btwn req.params and req.body 
-// template variable- access to the varaibles on the ejs site 
-
+// know the diff btwn req.params and req.body
+// template variable- access to the varaibles on the ejs site
 
 const express = require("express");
 const app = express();
@@ -25,6 +24,16 @@ function generateRandomStringeid(length) {
 }
 console.log(generateRandomStringeid());
 
+//helper function
+const validateUniqueEmail = (email, database, res) => {
+    for (let user in database) {
+    if (database[user].email === email) {
+      res.status(400).send("Email already exists");
+      return;
+    }
+  }
+};
+
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -44,14 +53,12 @@ const users = {
     password: "dishwasher-funk",
   },
 };
-
+console.log(users)
 //Assign alphanumeric key to urldatabase
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
   let shortURL = generateRandomStringeid(); //assign the function to a new variable
   urlDatabase[shortURL] = req["body"]["longURL"]; // To add a new key to urlDatabase use [] since shortURL is dynamic- longURL is static
   res.redirect(`/urls/${shortURL}`); //redirects to page with short url
-  console.log(urlDatabase);
 });
 
 app.get("/", (req, res) => {
@@ -63,19 +70,37 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] }; //assigned urlDatabase as object in a variable
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies["user_id"]],
+  }; //assigned urlDatabase as object in a variable
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
+  const templateVars = { username: req.cookies["username"], user: null };
+
   res.render("urls_new", templateVars);
+});
+
+//login page
+app.get("/login", (req, res) => {
+  const templateVars = { user: null }; // giving comp ok to carry on bc we don't have user yet
+  res.render("login", templateVars);
+});
+
+//login submitter
+app.post("/login", function (req, res) {
+  const username = req.body.username;
+
+  // Cookies that have not been signed
+  res.cookie("user_id", username); //stores the value of username inputted in browser
+  res.redirect("/urls");
 });
 
 // register page
 app.get("/register", (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
-  console.log("hello");
+  const templateVars = { user: null }; // giving comp ok to carry on bc we don't have user yet
   res.render("urls_register", templateVars);
 });
 
@@ -84,32 +109,28 @@ app.post("/register", function (req, res) {
   const id = generateRandomStringeid();
   const email = req.body.email;
   const password = req.body.password;
-  users[id] = {id, email, password};
-  res.cookie("user_id", id) 
-  console.log(users)
-  const templateVars = {id, email, password}
-  res.redirect("/urls", templateVars);
+
+  if (!email || !password) {
+    res.send("404");
+    return;
+  }
+  validateUniqueEmail(email, users, res);
+  
+  users[id] = { id, email, password };
+ console.log(users)
+  res.cookie("user_id", id);
+  res.redirect("/urls");
 });
 
 //logout submitter
 app.post("/logout", function (req, res) {
-  res.clearCookie("username");
-  res.redirect("/urls");
-});
-//login submitter
-app.post("/login", function (req, res) {
-  const username = req.body.username;
-
-  // Cookies that have not been signed
-  console.log("Cookies: ", req.cookies);
-  res.cookie("username", username); //stores the value of username inputted in browser
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
 
-  console.log(urlDatabase[shortURL]);
   res.redirect(urlDatabase[shortURL]);
 });
 
@@ -117,7 +138,11 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL; // Lighthouselabs;
   const longURL = urlDatabase[shortURL];
 
-  const templateVars = { shortURL, longURL, username: req.cookies["username"] };
+  const templateVars = {
+    shortURL,
+    longURL,
+    user: users[req.cookies["user_id"]],
+  }; //user = whole users object at the users.id to see if it matches
   res.render("urls_show", templateVars);
 });
 
