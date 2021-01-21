@@ -26,10 +26,20 @@ console.log(generateRandomStringeid());
 
 //helper function
 const validateUniqueEmail = (email, database, res) => {
-    for (let user in database) {
+  for (let user in database) {
     if (database[user].email === email) {
       res.status(400).send("Email already exists");
       return;
+    }
+  }
+};
+
+// find user by email
+const findUserbyEmail = (email, database) => {
+  for (let user in database) {
+    if (database[user].email === email) {
+      // means we found user
+      return database[user];
     }
   }
 };
@@ -53,7 +63,7 @@ const users = {
     password: "dishwasher-funk",
   },
 };
-console.log(users)
+console.log(users);
 //Assign alphanumeric key to urldatabase
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomStringeid(); //assign the function to a new variable
@@ -91,10 +101,22 @@ app.get("/login", (req, res) => {
 
 //login submitter
 app.post("/login", function (req, res) {
-  const username = req.body.username;
+  //const username = req.body.username;
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = findUserbyEmail(email, users);
+  console.log(user);
+  console.log(password);
+  if (!user) {
+    res.status(403).send("Email cannot be found");
+    return;
+  }
+  if (user.password !== password) {
+    res.status(403).send("Password incorrect");
+    return;
+  }
 
-  // Cookies that have not been signed
-  res.cookie("user_id", username); //stores the value of username inputted in browser
+  res.cookie("user_id", user.id); //stores the value of username inputted in browser
   res.redirect("/urls");
 });
 
@@ -115,9 +137,8 @@ app.post("/register", function (req, res) {
     return;
   }
   validateUniqueEmail(email, users, res);
-  
+
   users[id] = { id, email, password };
- console.log(users)
   res.cookie("user_id", id);
   res.redirect("/urls");
 });
