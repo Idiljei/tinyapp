@@ -88,7 +88,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"], user: null };
+  const templateVars = { username: req.cookies["user_id"], user: users[req.cookies["user_id"]] };
 
   res.render("urls_new", templateVars);
 });
@@ -101,12 +101,10 @@ app.get("/login", (req, res) => {
 
 //login submitter
 app.post("/login", function (req, res) {
-  //const username = req.body.username;
   const email = req.body.email;
   const password = req.body.password;
   const user = findUserbyEmail(email, users);
-  console.log(user);
-  console.log(password);
+
   if (!user) {
     res.status(403).send("Email cannot be found");
     return;
