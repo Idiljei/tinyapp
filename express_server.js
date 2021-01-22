@@ -4,6 +4,7 @@ const PORT = 3000;
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
+const bcrypt = require("bcrypt");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set("view engine", "ejs");
@@ -49,7 +50,6 @@ const findUserbyEmail = (email, database) => {
 const urlsForUser = (id) => {
   let filteredDatabase = {};
   for (let shortURL in urlDatabase) {
-
     if (urlDatabase[shortURL].userID === id) {
       filteredDatabase[shortURL] = urlDatabase[shortURL];
     }
@@ -78,7 +78,10 @@ console.log(users);
 //Assign alphanumeric key to urldatabase
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomStringeid(); //assign the function to a new variable
-  urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.cookies["user_id"]}; // To add a new key to urlDatabase use [] since shortURL is dynamic- longURL is static
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: req.cookies["user_id"],
+  }; // To add a new key to urlDatabase use [] since shortURL is dynamic- longURL is static
   res.redirect(`/urls/${shortURL}`); //redirects to page with short url
 });
 
@@ -86,7 +89,7 @@ app.get("/urls", (req, res) => {
   const userID = req.cookies["user_id"];
 
   if (!userID) {
-    res.send("Please Login");
+    res.redirect("/login");
   }
   const templateVars = {
     urls: urlsForUser(userID),
@@ -119,19 +122,19 @@ app.get("/login", (req, res) => {
 app.post("/login", function (req, res) {
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const user = findUserbyEmail(email, users);
 
   if (!user) {
     res.status(403).send("Email cannot be found");
     return;
   }
-  if (user.password !== password) {
+  if (bcrypt.compareSync(password, hashedPassword)) {
+    res.cookie("user_id", user.id); //stores the value of username inputted in browser
+    res.redirect("/urls");
+  } else {
     res.status(403).send("Password incorrect");
-    return;
   }
-
-  res.cookie("user_id", user.id); //stores the value of username inputted in browser
-  res.redirect("/urls");
 });
 
 // register page
