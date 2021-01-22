@@ -2,11 +2,22 @@ const express = require("express");
 const app = express();
 const PORT = 3000;
 
-const cookieParser = require("cookie-parser");
+//const cookieParser = require("cookie-parser");
+//app.use(cookieParser());
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
+
+const cookieSession = require("cookie-session");
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["key1"],
+    // Cookie Options
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  })
+);
+
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -71,7 +82,6 @@ const users = {
     password: "dishwasher-funk",
   },
 };
-console.log(users);
 
 // GET & POST REQUESTS
 
@@ -80,13 +90,15 @@ app.post("/urls", (req, res) => {
   let shortURL = generateRandomStringeid(); //assign the function to a new variable
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
-    userID: req.cookies["user_id"],
+    // userID: req.cookies["user_id"],
+    userID: req.session.user_id,
   }; // To add a new key to urlDatabase use [] since shortURL is dynamic- longURL is static
   res.redirect(`/urls/${shortURL}`); //redirects to page with short url
 });
 
 app.get("/urls", (req, res) => {
-  const userID = req.cookies["user_id"];
+  // const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
 
   if (!userID) {
     res.redirect("/login");
@@ -100,14 +112,16 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const loggedIn = req.cookies["user_id"]; //checking if the user exists
+  // const loggedIn = req.cookies["user_id"]; //checking if the user exists
+  const loggedIn = req.session.user_id;
 
   if (!loggedIn) {
     res.redirect("/login");
     return;
   }
   const templateVars = {
-    user: users[req.cookies["user_id"]],
+    //user: users[req.cookies["user_id"]],
+    user: users[req.session.user_id],
   };
   res.render("urls_new", templateVars);
 });
@@ -130,7 +144,8 @@ app.post("/login", function (req, res) {
     return;
   }
   if (bcrypt.compareSync(password, hashedPassword)) {
-    res.cookie("user_id", user.id); //stores the value of username inputted in browser
+    req.session.user_id = user.id;
+    //res.cookie("user_id", user.id); //stores the value of username inputted in browser
     res.redirect("/urls");
   } else {
     res.status(403).send("Password incorrect");
@@ -156,13 +171,16 @@ app.post("/register", function (req, res) {
   validateUniqueEmail(email, users, res);
 
   users[id] = { id, email, password };
-  res.cookie("user_id", id);
+  //res.cookie("user_id", id);
+  req.session.user_id = id;
   res.redirect("/urls");
 });
 
 //logout submitter
 app.post("/logout", function (req, res) {
-  res.clearCookie("user_id");
+  //res.clearCookie("user_id");
+  req.session = null;
+
   res.redirect("/urls");
 });
 
@@ -178,7 +196,8 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL,
     longURL,
-    user: users[req.cookies["user_id"]],
+    //user: users[req.cookies["user_id"]],
+    user: users[req.session.user_id],
   }; //user = whole users object at the users.id to see if it matches
   res.render("urls_show", templateVars);
 });
