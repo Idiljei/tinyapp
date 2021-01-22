@@ -45,6 +45,7 @@ const urlsForUser = (id) => {
   }
   return filteredDatabase;
 };
+
 //Create new URL
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomStringeid(); //assign the function to a new variable
@@ -52,7 +53,7 @@ app.post("/urls", (req, res) => {
     longURL: req.body.longURL,
     userID: req.session.user_id,
   }; // To add a new key to urlDatabase use [] since shortURL is dynamic- longURL is static
-  res.redirect(`/urls/${shortURL}`); //redirects to page with short url
+  return res.redirect(`/urls/${shortURL}`); //redirects to page with short url
 });
 
 //View all URLS
@@ -60,14 +61,14 @@ app.get("/urls", (req, res) => {
   const userID = req.session.user_id;
 
   if (!userID) {
-    res.redirect("/login");
+    return res.redirect("/login");
   }
   const templateVars = {
     urls: urlsForUser(userID),
     user: users[userID],
   };
 
-  res.render("urls_index", templateVars);
+  return res.render("urls_index", templateVars);
 });
 
 // Add new URL
@@ -94,9 +95,7 @@ app.get("/login", (req, res) => {
 app.post("/login", function (req, res) {
   const email = req.body.email;
   const password = req.body.password;
-  console.log("password",password);
   const user = findUserbyEmail(email, users);
-  console.log("user",user);
 
   if (!user) {
     res.status(403).send("Email cannot be found");
@@ -106,8 +105,7 @@ app.post("/login", function (req, res) {
     req.session.user_id = user.id;
     res.redirect("/urls");
   } else {
-   return res.status(403).send("Password incorrect");
-
+    return res.status(403).send("Password incorrect");
   }
 });
 
@@ -139,24 +137,25 @@ app.post("/register", function (req, res) {
 app.post("/logout", function (req, res) {
   req.session = null;
 
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL; //redirecting to go to Long URL website
-  res.redirect(longURL);
+  return res.redirect(longURL);
 });
 
+// Get single URL
 app.get("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL; // Lighthouselabs;
+  const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL].longURL;
 
   const templateVars = {
     shortURL,
     longURL,
     user: users[req.session.user_id],
-  }; //user = whole users object at the users.id to see if it matches
-  res.render("urls_show", templateVars);
+  };
+  return res.render("urls_show", templateVars);
 });
 
 // Edit exisitng URL
@@ -164,15 +163,14 @@ app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL; //returns the generated short url
   const longURL = req.body.longURL;
   urlDatabase[shortURL].longURL = longURL;
-  console.log(urlDatabase[shortURL].longURL);
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 // Deleting the URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL]; //use delete operator to delete
-  res.redirect("/urls"); //redirecting back to the main page after delete button pressed
+  return res.redirect("/urls"); //redirecting back to the main page after delete button pressed
 });
 
 app.listen(PORT, () => {
