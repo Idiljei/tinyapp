@@ -59,16 +59,16 @@ app.post("/urls", (req, res) => {
 //View all URLS
 app.get("/urls", (req, res) => {
   const userID = req.session.user_id;
-
+  let view = "urls_index";
   if (!userID) {
-    return res.redirect("/login");
+    view = "urls_error";
   }
   const templateVars = {
     urls: urlsForUser(userID),
     user: users[userID],
   };
 
-  return res.render("urls_index", templateVars);
+  return res.render(view, templateVars);
 });
 
 // Add new URL
@@ -150,12 +150,23 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL].longURL;
 
+  const userID = req.session.user_id;
+  let view = "urls_show";
+  if (!userID) {
+    view = "urls_error";
+  }
+  const urlBelongtoUser =
+    urlDatabase[shortURL] && urlDatabase[shortURL].userID === userID;
+  if (!urlBelongtoUser) {
+    view = "urls_notuser";
+  }
+
   const templateVars = {
     shortURL,
     longURL,
     user: users[req.session.user_id],
   };
-  return res.render("urls_show", templateVars);
+  return res.render(view, templateVars);
 });
 
 // Edit exisitng URL
