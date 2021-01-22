@@ -7,7 +7,6 @@ const { findUserbyEmail } = require("./helpers");
 const { generateRandomStringeid } = require("./helpers");
 const { validateUniqueEmail } = require("./helpers");
 const cookieSession = require("cookie-session");
-
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
@@ -18,7 +17,6 @@ app.use(
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   })
 );
-
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
@@ -38,7 +36,6 @@ const users = {
   },
 };
 
-
 const urlsForUser = (id) => {
   let filteredDatabase = {};
   for (let shortURL in urlDatabase) {
@@ -48,10 +45,7 @@ const urlsForUser = (id) => {
   }
   return filteredDatabase;
 };
-
-// GET & POST REQUESTS
-
-//Assign alphanumeric key to urldatabase
+//Create new URL
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomStringeid(); //assign the function to a new variable
   urlDatabase[shortURL] = {
@@ -61,6 +55,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`); //redirects to page with short url
 });
 
+//View all URLS
 app.get("/urls", (req, res) => {
   const userID = req.session.user_id;
 
@@ -75,6 +70,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// Add new URL
 app.get("/urls/new", (req, res) => {
   const loggedIn = req.session.user_id;
 
@@ -88,42 +84,45 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-//login page
+// Login pager render
 app.get("/login", (req, res) => {
   const templateVars = { user: null }; // giving comp ok to carry on bc we don't have user yet
   res.render("login", templateVars);
 });
 
-//login submitter
+//login
 app.post("/login", function (req, res) {
   const email = req.body.email;
   const password = req.body.password;
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  console.log("password",password);
   const user = findUserbyEmail(email, users);
+  console.log("user",user);
 
   if (!user) {
     res.status(403).send("Email cannot be found");
     return;
   }
-  if (bcrypt.compareSync(password, hashedPassword)) {
+  if (bcrypt.compareSync(password, user.password)) {
     req.session.user_id = user.id;
     res.redirect("/urls");
   } else {
-    res.status(403).send("Password incorrect");
+   return res.status(403).send("Password incorrect");
+
   }
 });
 
-// register page
+// Register page render
 app.get("/register", (req, res) => {
   const templateVars = { user: null }; // giving comp ok to carry on bc we don't have user yet
   res.render("urls_register", templateVars);
 });
 
-// register submitter
+// register new account
 app.post("/register", function (req, res) {
   const id = generateRandomStringeid();
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
   if (!email || !password) {
     res.send("404");
@@ -131,12 +130,12 @@ app.post("/register", function (req, res) {
   }
   validateUniqueEmail(email, users, res);
 
-  users[id] = { id, email, password };
+  users[id] = { id, email, password: hashedPassword };
   req.session.user_id = id;
   res.redirect("/urls");
 });
 
-//logout submitter
+//logout page
 app.post("/logout", function (req, res) {
   req.session = null;
 
@@ -150,7 +149,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL; // Lighthouselabs;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
 
   const templateVars = {
     shortURL,
@@ -160,21 +159,21 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// Edit exisitng URL
 app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL; //returns the generated short url
   const longURL = req.body.longURL;
   urlDatabase[shortURL].longURL = longURL;
-  console.log( urlDatabase[shortURL].longURL)
+  console.log(urlDatabase[shortURL].longURL);
   res.redirect("/urls");
 });
 
-// Deleting the URL generated on the form
+// Deleting the URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL]; //use delete operator to delete
   res.redirect("/urls"); //redirecting back to the main page after delete button pressed
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
