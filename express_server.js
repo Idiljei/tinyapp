@@ -48,12 +48,12 @@ const urlsForUser = (id) => {
 
 //Create new URL
 app.post("/urls", (req, res) => {
-  let shortURL = generateRandomStringeid(); //assign the function to a new variable
+  let shortURL = generateRandomStringeid(); 
   urlDatabase[shortURL] = {
     longURL: req.body.longURL,
     userID: req.session.user_id,
-  }; // To add a new key to urlDatabase use [] since shortURL is dynamic- longURL is static
-  return res.redirect(`/urls/${shortURL}`); //redirects to page with short url
+  }; 
+  return res.redirect(`/urls/${shortURL}`); 
 });
 
 //View all URLS
@@ -87,7 +87,7 @@ app.get("/urls/new", (req, res) => {
 
 // Login pager render
 app.get("/login", (req, res) => {
-  const templateVars = { user: null }; // giving comp ok to carry on bc we don't have user yet
+  const templateVars = { user: null }; 
   res.render("login", templateVars);
 });
 
@@ -111,7 +111,7 @@ app.post("/login", function (req, res) {
 
 // Register page render
 app.get("/register", (req, res) => {
-  const templateVars = { user: null }; // giving comp ok to carry on bc we don't have user yet
+  const templateVars = { user: null }; 
   res.render("urls_register", templateVars);
 });
 
@@ -171,7 +171,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // Edit exisitng URL
 app.post("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL; //returns the generated short url
+  const shortURL = req.params.shortURL; 
   const longURL = req.body.longURL;
   urlDatabase[shortURL].longURL = longURL;
   return res.redirect("/urls");
@@ -180,8 +180,8 @@ app.post("/urls/:shortURL", (req, res) => {
 // Deleting the URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL]; //use delete operator to delete
-  return res.redirect("/urls"); //redirecting back to the main page after delete button pressed
+  delete urlDatabase[shortURL]; 
+  return res.redirect("/urls"); 
 });
 
 app.listen(PORT, () => {
