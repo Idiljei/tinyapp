@@ -4,9 +4,9 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["Create an account page"](https://github.com/Idiljei/tinyapp/blob/master/docs/createaccount.png) 
+!["Create an account page"](https://github.com/Idiljei/tinyapp/blob/master/docs/createusername.png) 
 !["Generate a tinyURL"](https://github.com/Idiljei/tinyapp/blob/master/docs/createTinyURL.png)
-!["Generate a tinyURL"](docs/createTinyURL.png)
+!["My URLs page"](https://github.com/Idiljei/tinyapp/blob/master/docs/myURLshomepage.png)
 
 
 ## Dependencies
